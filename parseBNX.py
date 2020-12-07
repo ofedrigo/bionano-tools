@@ -1,11 +1,7 @@
 #! /usr/bin/env python
-import sys, glob,os,math
-from subprocess import PIPE, run
-import numpy
+import sys, numpy
+import bnx
 
-#!/usr/bin/python
-import sys
-	
 def average(numlist):
 	if len(numlist)>0:
 		return sum(numlist)/len(numlist)
@@ -19,50 +15,50 @@ def N50(lengths):
 	ind=numpy.where(csum == csumn2)
 	return all_len[int(ind[0])]
 
-#bnx="RawMolecules.bnx"
-bnx=sys.argv[1]
+#Main
+bnx_file=sys.argv[1]
+allReads=[]
+
+r=bnx.get_headers(bnx_file)
+
+
+#cohort_block=bnx.get_block(bnx_file,'"# Run Data"')
+
+
+cohort_block=[7,174]
+cohort_index=r["run_headers"]["RunId"]
+rundata=bnx.get_data_info(bnx_file,[cohort_index],cohort_block)
+print(rundata)
+
+
+#data_block=bnx.get_block(bnx_file,"^0")
+
+#data_block=[184, 95887860]
+data_block=[184,200]
+
+t=bnx.get_data_cols(bnx_file,[r["data_headers"]["Length"],r["data_headers"]["RunId"],r["data_headers"]["NumberofLabels"]],data_block)
+print(t)
+
+
+"""
 molid,runid,lentgh="","",""
 results={}
-rundata={}
-legend_0=[]
-legend_1=[]
-allReads=[]
-with open(bnx) as infile:
-	#get first legend
-	line = run('grep -m 1 "#rh" '+bnx, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-	legend_0=(line.stdout).replace("\n","").split("\t")
-	runid_0=legend_0.index("RunId")
-	
-	#get second legend
-	line = run('grep -m 1 "#0h" '+bnx, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-	legend_1=(line.stdout).replace("\n","").split("\t")
-	length_1=legend_1.index("Length")-1
-	runid_1=legend_1.index("RunId")-1
-	labels=legend_1.index("NumberofLabels")-1
-	
-	#get scan/cohort info
-	lines = run('grep "# Run Data" '+bnx, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-	data=[x.split("\t") for x in lines.stdout.splitlines()]
-	for items in data:
-		cohort=items[runid_0]
-		scan=math.ceil(float(cohort)/8.0)
-		rundata[cohort]=scan
-	
-	#get data
-	lines=run("grep ^0 "+bnx,stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-	output=lines.stdout.splitlines()
-	
-	#parse data and grab length per scan
-	for line in output:
-		data=line.split("\t")
-		cohort=data[runid_1]
-		thislength=data[length_1]
-		scan=rundata[cohort]
-		thislabel=data[labels]
-		allReads.append([thislength,thislabel])
-		if int(float(thislength))>=150000:
-			results.setdefault(scan,[]).append(int(float(thislength)))
 
+
+#get data
+lines=run("grep ^0 "+bnx,stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+#parse data and grab length per scan
+for line in lines.stdout.splitlines():
+    items=line.split("\t")
+    cohort=items[runid_index]
+    scan=rundata[cohort]
+    thislength=items[length_1]
+    thislabel=items[labels]
+    allReads.append([thislength,thislabel])
+    if int(float(thislength))>=150000:
+        results.setdefault(scan,[]).append(int(float(thislength)))
+"""
+"""
 allscans=list(results.keys())
 s=0
 t=[]
@@ -78,3 +74,4 @@ out.write("RL\tLabels")
 for line in allReads:
     out.write("\n"+line[0]+"\t"+line[1])
 out.close()
+"""
